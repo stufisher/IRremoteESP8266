@@ -132,7 +132,7 @@ void IRrecv::resume() {
   irparams.overflow = false;
 }
 
-// Make a copy of the interrupt state/data.
+// Make a copy of the interrupt state & buffer data.
 // Needed because irparams is marked as volatile, thus memcpy() isn't allowed.
 // Only call this when you know the interrupt handlers won't modify anything.
 // i.e. In STATE_STOP.
@@ -144,9 +144,26 @@ void IRrecv::copyIrParams(irparams_t *dest) {
   char *csrc = (char *) (&irparams);  // NOLINT(readability/casting)
   char *cdest = (char *) dest;  // NOLINT(readability/casting)
 
+  // Save the pointer to the destination's rawbuf so we don't lose it.
+  uint16_t *dest_rawbuf_ptr;
+  dest_rawbuf_ptr = dest->rawbuf;
+
   // Copy contents of src[] to dest[]
   for (uint16_t i = 0; i < sizeof(irparams_t); i++)
     cdest[i] = csrc[i];
+
+  // Restore the buffer pointer
+  dest->rawbuf = dest_rawbuf_ptr;
+
+  // Copy the rawbuf
+  for (uint16_t i = 0; i < dest->bufsize; i++)
+    dest->rawbuf[i] = irparams.rawbuf[i];
+}
+
+// Obtain the maximum number of entries possible in the capture buffer.
+// i.e. It's size.
+uint16_t IRrecv::getBufSize() {
+  return irparams.bufsize;
 }
 
 // Decodes the received IR message.

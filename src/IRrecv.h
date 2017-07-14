@@ -82,6 +82,7 @@ class IRrecv {
   void enableIRIn();
   void disableIRIn();
   void resume();
+  uint16_t getBufSize();
 
 #ifndef UNIT_TEST
 
